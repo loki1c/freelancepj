@@ -12,7 +12,7 @@ use Exception;
 
 class RegisterController extends Controller
 {
-    /**
+    /*
      * @param RegistrationRequest $request
      * @return JsonResponse
      */

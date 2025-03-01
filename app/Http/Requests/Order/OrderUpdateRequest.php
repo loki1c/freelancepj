@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,12 +15,12 @@ class OrderUpdateRequest extends FormRequest
         return auth()->user()->is_admin; // или твоя логика проверки админа
     }
 
-    /**
+    /*
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'title' => 'sometimes|required|string|max:255',

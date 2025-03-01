@@ -10,7 +10,7 @@ use App\Http\Requests\Auth\LoginRequest;
 
 class AuthController extends Controller
 {
-    /**
+    /*
      * @param LoginRequest $request
      * @return JsonResponse
      */

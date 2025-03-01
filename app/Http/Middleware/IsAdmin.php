@@ -9,8 +9,10 @@ class IsAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->user() || !auth()->user()->is_admin) {
-            return response()->json(['message' => 'Доступ запрещён'], 403);
+        if (!empty(auth()->user()->is_admin)) {
+            if (!auth()->user() || !auth()->user()->is_admin) {
+                return response()->json(['message' => 'Доступ запрещён'], 403);
+            }
         }
         return $next($request);
     }
