@@ -4,16 +4,18 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class IsAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!empty(auth()->user()->is_admin)) {
-            if (!auth()->user() || !auth()->user()->is_admin) {
-                return response()->json(['message' => 'Доступ запрещён'], 403);
-            }
+        $user = Auth::user(); // Получаем пользователя
+
+        if (!$user || !$user->isAdmin()) { // Используем метод isAdmin()
+            return response()->json(['message' => 'Доступ запрещён'], 403);
         }
+
         return $next($request);
     }
 }

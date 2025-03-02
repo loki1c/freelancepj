@@ -21,7 +21,12 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $user->createToken('Personal Access Token')->accessToken;
+
+        if (!($user instanceof \App\Models\User)) {
+            return response()->json(['success' => false, 'message' => 'Ошибка авторизации'], 401);
+        }
+
+        $token = $user->createToken('Personal Access Token')->accessToken; // Теперь правильно!
 
         return response()->json([
             'success' => true,
