@@ -1,12 +1,12 @@
 <?php
+
 declare(strict_types = 1);
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\Order;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginRequest extends FormRequest
+class OrderChatRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -18,14 +18,13 @@ class LoginRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         return [
-            'email' => 'required|email|string|exists:users,email|max:255',
-            'password' => 'required|string|min:8|max:255',
+            'order_id' => 'required|exists:orders,id',
+            'user_id' => 'required|exists:users,id',
+            'message' => 'required|string|max:5000',
         ];
     }
 }

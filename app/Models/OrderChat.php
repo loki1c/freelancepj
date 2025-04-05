@@ -5,18 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * @method static findOrFail($id)
- */
-class Order extends Model
+class OrderChat extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'executor_id', 'title', 'description', 'price', 'status'];
+
+    protected $fillable = [
+        'order_id',
+        'user_id',
+        'message',
+    ];
+
+    public function order(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
 }
-

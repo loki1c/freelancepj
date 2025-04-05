@@ -28,10 +28,9 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_admin' => 'boolean' // Добавляем, чтобы Laravel понимал, что это булево поле
     ];
-
-    public function isAdmin(): bool
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-       return (bool) $this->fillable->is_admin;
+        return $this->hasMany(Order::class);
     }
 }
 

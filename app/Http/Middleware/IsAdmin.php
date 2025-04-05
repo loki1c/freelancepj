@@ -11,8 +11,7 @@ class IsAdmin
     public function handle(Request $request, Closure $next)
     {
         $user = Auth::user(); // Получаем пользователя
-
-        if (!$user || !$user->isAdmin()) { // Используем метод isAdmin()
+        if (!$user || $user->is_admin === 0) { // Используем метод isAdmin()
             return response()->json(['message' => 'Доступ запрещён'], 403);
         }
 

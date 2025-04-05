@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types = 1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -12,7 +12,7 @@ use Exception;
 
 class RegisterController extends Controller
 {
-    /*
+    /**
      * @param RegistrationRequest $request
      * @return JsonResponse
      */
@@ -22,6 +22,7 @@ class RegisterController extends Controller
 
         try {
             $user = User::query()->create([
+                'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
             ]);
