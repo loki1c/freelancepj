@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->text('message');
-            $table->timestamps();
+            $table->timestamps(); // для created_at и updated_at
         });
     }
 
