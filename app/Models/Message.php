@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;  // Эта строка важна!
 
 class Message extends Model
 {
@@ -16,6 +16,11 @@ class Message extends Model
         'content',
     ];
 
+    public function chat()
+    {
+        return $this->belongsTo(OrderChat::class, 'order_chat_id');
+    }
+
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');
@@ -25,5 +30,5 @@ class Message extends Model
     {
         return $this->belongsTo(User::class, 'recipient_id');
     }
-
 }
+

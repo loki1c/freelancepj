@@ -5,15 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-// App\Models\OrderChat.php
-
 class OrderChat extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'order_id',
-        'user_id',
+        'user1_id',
+        'user2_id',
     ];
 
     public function order()
@@ -21,14 +20,18 @@ class OrderChat extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function messages()
     {
         return $this->hasMany(Message::class);
     }
-}
 
+    public function user1()
+    {
+        return $this->belongsTo(User::class, 'user1_id');
+    }
+
+    public function user2()
+    {
+        return $this->belongsTo(User::class, 'user2_id');
+    }
+}

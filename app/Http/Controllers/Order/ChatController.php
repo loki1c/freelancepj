@@ -1,7 +1,5 @@
 <?php
 
-// App\Http\Controllers\Order\ChatController.php
-
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
@@ -10,10 +8,10 @@ use App\Models\OrderChat;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
+    // Создание нового чата или получение существующего
     public function store(Request $request)
     {
         $request->validate([
@@ -23,75 +21,69 @@ class ChatController extends Controller
         $userId = Auth::id();
         $orderId = $request->order_id;
 
-        // Получаем заказ
-        $order = Order::find($orderId);
+        $order = Order::findOrFail($orderId);
 
-        // Проверка, что пользователь либо является заказчиком, либо откликнувшимся
+        // Заказчик не может создать чат сам с собой
         if ($order->user_id == $userId) {
             return response()->json(['message' => 'Заказчик не может создать чат сам с собой.'], 400);
         }
 
-        // Проверка, есть ли уже чат между заказчиком и откликнувшимся пользователем
+        // Определяем двух участников
+        $user1 = min($userId, $order->user_id);
+        $user2 = max($userId, $order->user_id);
+
+        // Проверка существующего чата
         $chat = OrderChat::where('order_id', $orderId)
-            ->where(function($query) use ($userId, $order) {
-                $query->where('user_id', $userId)
-                    ->orWhere('user_id', $order->user_id);
-            })
-            ->first();
+            ->where(function ($q) use ($user1, $user2) {
+                $q->where('user1_id', $user1)
+                    ->where('user2_id', $user2);
+            })->first();
 
         if ($chat) {
             return response()->json(['chat' => $chat], 200);
         }
 
-        // Если чата нет, создаем новый
+        // Создание нового чата
         $chat = OrderChat::create([
             'order_id' => $orderId,
-            'user_id' => $userId,
+            'user1_id' => $user1,
+            'user2_id' => $user2,
         ]);
 
         return response()->json(['chat' => $chat], 201);
     }
 
-
+    // Получение чата по ID
     public function show($id)
     {
         $userId = Auth::id();
 
-        // Логирование для проверки передаваемых параметров
-        Log::info('Fetching chat', ['chat_id' => $id, 'user_id' => $userId]);
-
-        // Получаем чат по ID
         $chat = OrderChat::with(['messages.sender', 'messages.recipient'])
             ->where('id', $id)
             ->where(function ($query) use ($userId) {
-                $query->where('user_id', $userId)
-                    ->orWhereHas('order', function ($q) use ($userId) {
-                        $q->where('user_id', $userId);
-                    });
+                $query->where('user1_id', $userId)
+                    ->orWhere('user2_id', $userId);
             })
             ->first();
 
-        // Логирование для проверки, найден ли чат
         if (!$chat) {
-            Log::warning('Chat not found', ['chat_id' => $id, 'user_id' => $userId]);
             return response()->json(['message' => 'Chat not found'], 404);
         }
 
         return response()->json(['chat' => $chat]);
     }
 
-
+    // Отправка нового сообщения в чат
     public function sendMessage(Request $request, $orderId)
     {
         $request->validate([
             'content' => 'required|string',
         ]);
 
-        $userId = auth()->id();
+        $senderId = auth()->id();
         $order = Order::findOrFail($orderId);
 
-        // Получатель — если текущий пользователь = заказчик, значит получатель — исполнитель и наоборот
-        $recipientId = $order->user_id === $userId
+        $recipientId = $order->user_id === $senderId
             ? $order->accepted_user_id
             : $order->user_id;
 
@@ -99,16 +91,21 @@ class ChatController extends Controller
             return response()->json(['message' => 'Невозможно определить получателя'], 400);
         }
 
+        // Определяем user1 и user2
+        $user1 = min($senderId, $recipientId);
+        $user2 = max($senderId, $recipientId);
+
         // Поиск или создание чата
-        $chat = OrderChat::firstOrCreate(
-            ['order_id' => $orderId],
-            ['user_id' => $userId]
-        );
+        $chat = OrderChat::firstOrCreate([
+            'order_id' => $orderId,
+            'user1_id' => $user1,
+            'user2_id' => $user2,
+        ]);
 
         // Создание сообщения
         $message = Message::create([
             'order_chat_id' => $chat->id,
-            'sender_id' => $userId,
+            'sender_id' => $senderId,
             'recipient_id' => $recipientId,
             'content' => $request->input('content'),
         ]);

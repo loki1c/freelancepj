@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\Auth\RegistrationRequest;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +13,8 @@ use Exception;
 class RegisterController extends Controller
 {
     /**
+     * Регистрация нового пользователя.
+     *
      * @param RegistrationRequest $request
      * @return JsonResponse
      */
@@ -21,21 +23,27 @@ class RegisterController extends Controller
         $data = $request->validated();
 
         try {
+            // Создаем нового пользователя
             $user = User::query()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
             ]);
 
+            // Создаем токен для пользователя
             $token = $user->createToken('Personal Access Token');
+            $tokenString = $token->accessToken;
 
             return response()->json([
                 'success' => true,
-                'token' => $token->accessToken,
+                'token' => $tokenString,
                 'user' => $user,
             ], 201);
         } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 }
