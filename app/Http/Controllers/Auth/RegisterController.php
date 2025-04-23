@@ -23,9 +23,13 @@ class RegisterController extends Controller
         $data = $request->validated();
 
         try {
-            // Создаем нового пользователя
+            // Создаем нового пользователя с новыми полями
             $user = User::query()->create([
-                'name' => $data['name'],
+                'login' => $data['login'],
+                'firstname' => $data['firstname'],
+                'lastname' => $data['lastname'],
+                'phone' => $data['phone'],
+                'city' => $data['city'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
             ]);
@@ -47,3 +51,4 @@ class RegisterController extends Controller
         }
     }
 }
+

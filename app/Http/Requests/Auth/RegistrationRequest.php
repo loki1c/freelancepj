@@ -26,9 +26,14 @@ final class RegistrationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required',
-            'email' => 'required|email|string|max:255|unique:users,email',
-            'password' => 'required|min:8|max:255|'
+            'login' => 'required|unique:users,login|max:255',  // Логин теперь обязателен
+            'firstname' => 'required|string|max:255',          // Имя
+            'lastname' => 'required|string|max:255',           // Фамилия
+            'phone' => 'nullable|numeric',                      // Телефон
+            'city' => 'nullable|string|max:255',                // Город
+            'email' => 'required|email|string|max:255|unique:users,email',  // Электронная почта
+            'password' => 'required|min:8|max:255|confirmed',  // Пароль
         ];
     }
 }
+

@@ -12,10 +12,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'is_admin'
+        'login', 'firstname', 'lastname', 'phone', 'city', 'email', 'password', 'is_admin'
     ];
 
     protected $hidden = [
@@ -26,12 +23,14 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'is_admin' => 'boolean' // Добавляем, чтобы Laravel понимал, что это булево поле
+        'is_admin' => 'boolean' // Чтобы Laravel понимал, что это булево поле
     ];
+
     public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Order::class);
     }
 }
+
 
 
