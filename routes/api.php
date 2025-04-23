@@ -35,7 +35,8 @@ Route::middleware(['auth:api'])->group(function () {
 
 Route::middleware(['auth:api'])->group(function () {
     Route::prefix('user/profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'profile']); // Информация о профиле
+        Route::get('/', [ProfileController::class, 'profile']);
+        Route::put('/', [ProfileController::class, 'updateProfile']);// Информация о профиле
         Route::get('/orders', [ProfileController::class, 'index']); // Заказы пользователя
         Route::post('/orders', [ProfileController::class, 'store']); // Создание заказа
         Route::get('/orders/{id}', [ProfileController::class, 'show']); // Просмотр одного заказа

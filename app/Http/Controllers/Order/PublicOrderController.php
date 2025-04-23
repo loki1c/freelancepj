@@ -21,9 +21,12 @@ class PublicOrderController extends Controller
             'title' => $order->title,
             'description' => $order->description,
             'price' => $order->price,
+            'category' => $order->category, // Добавляем category
+            'deadline' => $order->deadline, // Добавляем deadline
             'user_id' => $order->user_id,
             'is_owner' => $isOwner,
         ]);
     }
+
 
 }

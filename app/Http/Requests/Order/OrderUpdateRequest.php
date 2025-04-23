@@ -24,9 +24,12 @@ class OrderUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'sometimes|required|string|max:255',
-        '   description' => 'sometimes|required|string',
-            'price' => 'sometimes|required|numeric|min:1',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'status' => 'nullable|string',
+            'category' => 'nullable|string|max:255',
+            'deadline' => 'nullable|date|after_or_equal:today',
         ];
     }
 }

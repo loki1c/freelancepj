@@ -20,23 +20,25 @@ class OrderController extends Controller
     // Обновление заказа
     public function update(OrderUpdateRequest $request, Order $order): JsonResponse
     {
+        // Обновляем данные заказа, включая новые поля (category и deadline)
         $order->update($request->validated());
+
         return response()->json(['message' => 'Заказ обновлён', 'order' => $order]);
     }
 
-    // Обновление данных заказа
+    // Обновление данных заказа (с учётом новых полей)
     public function updateOrder(OrderUpdateRequest $request, Order $order): JsonResponse
     {
-        $order->update($request->only(['title', 'description', 'price', 'status']));
-        return response()->json(['message' => 'Заказ обновлен', 'order' => $order]);
+        // Обновляем только определённые поля, включая category и deadline
+        $order->update($request->only(['title', 'description', 'price', 'status', 'category', 'deadline']));
+
+        return response()->json(['message' => 'Заказ обновлён', 'order' => $order]);
     }
 
     // Удаление заказа
     public function deleteOrder(Order $order): JsonResponse
     {
         $order->delete();
-        return response()->json(['message' => 'Заказ удален']);
+        return response()->json(['message' => 'Заказ удалён']);
     }
 }
-
-

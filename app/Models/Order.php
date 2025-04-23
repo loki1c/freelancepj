@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'executor_id', 'title', 'description', 'price', 'status'];
+    protected $fillable = ['user_id', 'executor_id', 'title', 'description', 'price', 'status', 'category', 'deadline'];
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
