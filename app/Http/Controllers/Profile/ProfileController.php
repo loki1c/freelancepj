@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\DB;
 class ProfileController extends Controller
 {
     // Информация о профиле пользователя
@@ -59,15 +59,30 @@ class ProfileController extends Controller
             return response()->json(['error' => 'Order not found or unauthorized'], 403);
         }
 
-        // При необходимости можно добавить поле файла или другие связи (например, связь с категорией)
+        // Проверяем, был ли просмотр
+        $viewExists = DB::table('order_views')
+            ->where('user_id', Auth::id())
+            ->where('order_id', $order->id)
+            ->exists();
+
+        if (!$viewExists) {
+            // Сохраняем информацию о просмотре
+            DB::table('order_views')->insert([
+                'user_id' => Auth::id(),
+                'order_id' => $order->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         return response()->json([
             'id' => $order->id,
             'title' => $order->title,
             'description' => $order->description,
             'price' => $order->price,
-            'category' => $order->category, // если поле категорий сохранено в заказе
+            'category' => $order->category,
             'deadline' => $order->deadline,
-            'file' => $order->file, // возвращаем путь к файлу
+            'file' => $order->file,
             'status' => $order->status,
             'createdAt' => $order->created_at,
             'updatedAt' => $order->updated_at,
@@ -77,6 +92,7 @@ class ProfileController extends Controller
             ],
         ]);
     }
+
 
     // Обновление заказа
     public function update(Request $request, $id): \Illuminate\Http\JsonResponse

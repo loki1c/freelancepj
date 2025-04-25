@@ -36,14 +36,17 @@ Route::middleware(['auth:api'])->group(function () {
 Route::middleware(['auth:api'])->group(function () {
     Route::prefix('user/profile')->group(function () {
         Route::get('/', [ProfileController::class, 'profile']);
-        Route::put('/', [ProfileController::class, 'updateProfile']);// Информация о профиле
+        Route::put('/', [ProfileController::class, 'updateProfile']); // Информация о профиле
         Route::get('/orders', [ProfileController::class, 'index']); // Заказы пользователя
         Route::post('/orders', [ProfileController::class, 'store']); // Создание заказа
-        Route::get('/orders/{id}', [ProfileController::class, 'show']); // Просмотр одного заказа
+        Route::get('/orders/{id}', [ProfileController::class, 'show']);
+        Route::get('/orders/{id}', [OrderController::class, 'showPublic']); // Просмотр одного заказа
         Route::put('/orders/{id}', [ProfileController::class, 'update']); // Обновление заказа
         Route::delete('/orders/{id}', [ProfileController::class, 'destroy']); // Удаление заказа
         Route::get('/user/profile/download-file/{file}', [ProfileController::class, 'downloadFile']);
 
+        // Новый маршрут для получения количества откликов на заказ
+        Route::get('/orders/{id}/view-count', [OrderController::class, 'getOrderViewCount']);
     });
 });
 Route::middleware('auth:api')->get('/orders/{id}', [\App\Http\Controllers\Order\PublicOrderController::class, 'show']);
