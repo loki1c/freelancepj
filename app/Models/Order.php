@@ -11,8 +11,15 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'executor_id', 'title', 'description', 'price', 'status', 'category', 'deadline'];
-
+    protected $fillable = [
+        'title', 'description', 'price', 'category', 'deadline', 'file', 'user_id',
+    ];
+    public function toArray()
+    {
+        $array = parent::toArray();
+        $array['file'] = $this->file; // явное добавление поля 'file'
+        return $array;
+    }
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);

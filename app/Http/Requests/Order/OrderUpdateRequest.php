@@ -30,6 +30,7 @@ class OrderUpdateRequest extends FormRequest
             'status' => 'nullable|string',
             'category' => 'nullable|string|max:255',
             'deadline' => 'nullable|date|after_or_equal:today',
+            'file' => 'nullable|file|max:10240', // до 10MB
         ];
     }
 }

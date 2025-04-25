@@ -42,6 +42,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/orders/{id}', [ProfileController::class, 'show']); // Просмотр одного заказа
         Route::put('/orders/{id}', [ProfileController::class, 'update']); // Обновление заказа
         Route::delete('/orders/{id}', [ProfileController::class, 'destroy']); // Удаление заказа
+        Route::get('/user/profile/download-file/{file}', [ProfileController::class, 'downloadFile']);
+
     });
 });
 Route::middleware('auth:api')->get('/orders/{id}', [\App\Http\Controllers\Order\PublicOrderController::class, 'show']);

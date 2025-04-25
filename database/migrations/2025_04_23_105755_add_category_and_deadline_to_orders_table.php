@@ -12,15 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('category')->nullable()->after('price');
-            $table->date('deadline')->nullable()->after('category');
+            $table->string('file')->nullable()->after('deadline');
         });
     }
 
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn(['category', 'deadline']);
+            $table->dropColumn(['file']);
         });
     }
 
