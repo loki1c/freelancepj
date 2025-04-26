@@ -44,7 +44,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::put('/orders/{id}', [ProfileController::class, 'update']); // Обновление заказа
         Route::delete('/orders/{id}', [ProfileController::class, 'destroy']); // Удаление заказа
         Route::get('/user/profile/download-file/{file}', [ProfileController::class, 'downloadFile']);
-
+        Route::post('/orders/{id}/add-to-cart', [OrderController::class, 'addToCart']);
+        Route::get('/cart', [OrderController::class, 'getCartOrders']);
         // Новый маршрут для получения количества откликов на заказ
         Route::get('/orders/{id}/view-count', [OrderController::class, 'getOrderViewCount']);
     });

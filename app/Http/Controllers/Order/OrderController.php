@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\CartOrder;
 class OrderController extends Controller
 {
     // Получение всех заказов всех пользователей
@@ -99,5 +100,42 @@ class OrderController extends Controller
             ->count();
 
         return response()->json(['view_count' => $viewCount]);
+    }
+    public function addToCart($orderId)
+    {
+        $order = Order::findOrFail($orderId);
+
+        // Проверяем, не добавлен ли уже в корзину этим пользователем
+        $exists = CartOrder::where('order_id', $orderId)
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'Этот заказ уже в вашей корзине'], 400);
+        }
+
+        // Добавляем заказ в корзину
+        CartOrder::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+        ]);
+
+        return response()->json(['message' => 'Заказ добавлен в корзину']);
+    }
+    public function getCartOrders()
+    {
+        $userId = Auth::id();
+        $cart = CartOrder::with('order')->where('user_id', $userId)->get();
+
+        $orders = $cart->map(function ($item) {
+            return [
+                'id' => $item->order->id,
+                'title' => $item->order->title,
+                'description' => $item->order->description,
+                'price' => $item->order->price,
+            ];
+        });
+
+        return response()->json($orders);
     }
 }
