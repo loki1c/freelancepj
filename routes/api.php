@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\ChatController;
+use App\Http\Controllers\Notification\NotificationController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('registration', [RegisterController::class, 'registration']);
@@ -23,7 +24,7 @@ Route::middleware('auth:api')->group(function () {
 });
 Route::middleware(['auth:api'])->group(function () {
     // Маршрут для получения чатов
-        Route::get('/user/order/chat/{id}', [ChatController::class, 'show'])->name('user.order.chat.show');
+        Route::get('/user/order/chat/{orderId}', [ChatController::class, 'show'])->name('user.order.chat.show');
 
     // Маршрут для создания нового чата
     Route::post('/user/order/chat', [ChatController::class, 'store'])->name('user.order.chat.store');
@@ -46,8 +47,15 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/user/profile/download-file/{file}', [ProfileController::class, 'downloadFile']);
         Route::post('/orders/{id}/add-to-cart', [OrderController::class, 'addToCart']);
         Route::get('/cart', [OrderController::class, 'getCartOrders']);
+        Route::put('/orders/{id}/close', [OrderController::class, 'closeOrder']); // Закрыть заказ
+
+        // Запросы на заказы
+        Route::post('/orders/{id}/send-request', [OrderController::class, 'sendRequest']); // Отправить запрос на заказ
+        Route::post('/orders/{orderId}/approve-request/{requestId}', [OrderController::class, 'approveRequest']); // Принять запрос на
         // Новый маршрут для получения количества откликов на заказ
         Route::get('/orders/{id}/view-count', [OrderController::class, 'getOrderViewCount']);
     });
 });
+Route::middleware('auth:api')->get('/notifications', [NotificationController::class, 'getNotifications']);
+
 Route::middleware('auth:api')->get('/orders/{id}', [\App\Http\Controllers\Order\PublicOrderController::class, 'show']);

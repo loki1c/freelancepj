@@ -54,12 +54,12 @@ class ChatController extends Controller
     }
 
     // Получение чата по ID
-    public function show($id)
+    public function show($orderId)
     {
         $userId = Auth::id();
 
         $chat = OrderChat::with(['messages.sender', 'messages.recipient'])
-            ->where('id', $id)
+            ->where('order_id', $orderId)
             ->where(function ($query) use ($userId) {
                 $query->where('user1_id', $userId)
                     ->orWhere('user2_id', $userId);

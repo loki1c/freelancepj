@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\CartOrder;
+use App\Models\OrderRequest;
 class OrderController extends Controller
 {
     // Получение всех заказов всех пользователей
@@ -32,7 +33,7 @@ class OrderController extends Controller
     public function updateOrder(OrderUpdateRequest $request, Order $order): JsonResponse
     {
         // Обновляем только определённые поля, включая category и deadline
-        $order->update($request->only(['title', 'description', 'price', 'status', 'category', 'deadline',]));
+        $order->update($request->only(['title', 'description', 'price', 'status', 'category', 'deadline']));
 
         return response()->json(['message' => 'Заказ обновлён', 'order' => $order]);
     }
@@ -137,5 +138,77 @@ class OrderController extends Controller
         });
 
         return response()->json($orders);
+    }
+    public function closeOrder($id): JsonResponse
+    {
+        $order = Order::findOrFail($id);
+
+        // Проверка, если заказ уже закрыт
+        if ($order->status === 'Закрыт') {
+            return response()->json(['message' => 'Этот заказ уже закрыт'], 400);
+        }
+
+        // Обновление статуса заказа на "Закрыт"
+        $order->status = 'Закрыт';
+        $order->save();
+
+        return response()->json(['message' => 'Заказ успешно закрыт', 'order' => $order]);
+    }
+
+    public function sendRequest($orderId): JsonResponse
+    {
+        $order = Order::findOrFail($orderId);
+
+        // Проверка, доступен ли заказ для принятия
+        if ($order->status !== 'Открыт') {
+            return response()->json(['message' => 'Этот заказ уже не доступен для принятия'], 400);
+        }
+
+        // Проверка, не отправлял ли пользователь уже запрос на принятие
+        $exists = OrderRequest::where('order_id', $orderId)
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'Вы уже отправили запрос на принятие этого заказа'], 400);
+        }
+
+        // Создание нового запроса на принятие
+        $orderRequest = OrderRequest::create([
+            'order_id' => $order->id,
+            'user_id' => Auth::id(),
+            'status' => 'Ожидает подтверждения',
+        ]);
+
+        return response()->json([
+            'message' => 'Запрос на принятие заказа отправлен',
+            'request' => $orderRequest
+        ]);
+    }
+
+    public function approveRequest($orderId, $requestId): JsonResponse
+    {
+        $order = Order::findOrFail($orderId);
+        $orderRequest = OrderRequest::findOrFail($requestId);
+
+        // Проверка, был ли запрос уже выполнен
+        if ($orderRequest->status === 'Выполнено') {
+            return response()->json(['message' => 'Запрос уже выполнен и заказ в разработке'], 400);
+        }
+
+        // Обновление статуса запроса на "Принят"
+        $orderRequest->status = 'Принят';
+        $orderRequest->save();
+
+        // Обновление статуса заказа
+        $order->status = 'В разработке';
+        $order->executor_id = $orderRequest->user_id; // вот тут сохраняем исполнителя
+        $order->save();
+
+        return response()->json([
+            'message' => 'Запрос принят, заказ теперь в разработке',
+            'order' => $order,
+            'orderRequest' => $orderRequest
+        ]);
     }
 }
