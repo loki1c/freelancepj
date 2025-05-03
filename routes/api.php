@@ -57,5 +57,7 @@ Route::middleware(['auth:api'])->group(function () {
     });
 });
 Route::middleware('auth:api')->get('/notifications', [NotificationController::class, 'getNotifications']);
+Route::middleware('auth:api')->get('/user/order/my-requests', [OrderController::class, 'myRequests']);
+
 
 Route::middleware('auth:api')->get('/orders/{id}', [\App\Http\Controllers\Order\PublicOrderController::class, 'show']);

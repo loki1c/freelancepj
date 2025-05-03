@@ -159,6 +159,11 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($orderId);
 
+        // Проверка, не является ли пользователь владельцем этого заказа
+        if ($order->user_id === Auth::id()) {
+            return response()->json(['message' => 'Вы не можете отправить запрос на свой собственный заказ'], 400);
+        }
+
         // Проверка, доступен ли заказ для принятия
         if ($order->status !== 'Открыт') {
             return response()->json(['message' => 'Этот заказ уже не доступен для принятия'], 400);
@@ -186,29 +191,48 @@ class OrderController extends Controller
         ]);
     }
 
-    public function approveRequest($orderId, $requestId): JsonResponse
+    public function approveRequest($orderId, $requestId)
     {
         $order = Order::findOrFail($orderId);
-        $orderRequest = OrderRequest::findOrFail($requestId);
 
-        // Проверка, был ли запрос уже выполнен
-        if ($orderRequest->status === 'Выполнено') {
-            return response()->json(['message' => 'Запрос уже выполнен и заказ в разработке'], 400);
+        // Проверка, что текущий пользователь — владелец заказа
+        if ($order->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Вы не являетесь владельцем этого заказа'], 403);
         }
 
-        // Обновление статуса запроса на "Принят"
-        $orderRequest->status = 'Принят';
-        $orderRequest->save();
+        // Проверка, одобрен ли уже какой-то запрос
+        $alreadyApproved = OrderRequest::where('order_id', $orderId)
+            ->where('status', 'Подтвержден')
+            ->exists();
 
-        // Обновление статуса заказа
-        $order->status = 'В разработке';
-        $order->executor_id = $orderRequest->user_id; // вот тут сохраняем исполнителя
-        $order->save();
+        if ($alreadyApproved) {
+            return response()->json(['message' => 'Вы уже одобрили один из запросов на этот заказ'], 400);
+        }
 
-        return response()->json([
-            'message' => 'Запрос принят, заказ теперь в разработке',
-            'order' => $order,
-            'orderRequest' => $orderRequest
-        ]);
+        // Одобряем выбранный запрос
+        $request = OrderRequest::where('order_id', $orderId)
+            ->where('id', $requestId)
+            ->firstOrFail();
+
+        $request->status = 'Подтвержден';
+        $request->save();
+
+        // Отклоняем все остальные запросы
+        OrderRequest::where('order_id', $orderId)
+            ->where('id', '!=', $requestId)
+            ->update(['status' => 'Отклонен']);
+
+        return response()->json(['message' => 'Запрос одобрен, остальные отклонены']);
+    }
+
+    public function myRequests()
+    {
+        $user = Auth::user();
+
+        $requests = OrderRequest::with('order') // подгружаем связанную информацию о заказе
+        ->where('user_id', $user->id)
+            ->get();
+
+        return response()->json($requests);
     }
 }

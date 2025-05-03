@@ -12,7 +12,7 @@ class Order extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'title', 'description', 'price', 'category', 'deadline', 'file', 'user_id', 'status',
+        'title', 'description', 'price', 'status', 'category', 'deadline', 'user_id', 'executor_id'
     ];
     public function toArray()
     {

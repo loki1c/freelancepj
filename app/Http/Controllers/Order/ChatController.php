@@ -83,9 +83,15 @@ class ChatController extends Controller
         $senderId = auth()->id();
         $order = Order::findOrFail($orderId);
 
-        $recipientId = $order->user_id === $senderId
-            ? $order->accepted_user_id
-            : $order->user_id;
+        // Попробовать взять recipient_id из запроса
+        $recipientId = $request->input('recipient_id');
+
+        // Если не передан — попытаться определить
+        if (!$recipientId) {
+            $recipientId = $order->user_id === $senderId
+                ? $order->accepted_user_id
+                : $order->user_id;
+        }
 
         if (!$recipientId) {
             return response()->json(['message' => 'Невозможно определить получателя'], 400);
@@ -114,5 +120,6 @@ class ChatController extends Controller
             'message' => $message,
         ]);
     }
+
 }
 
