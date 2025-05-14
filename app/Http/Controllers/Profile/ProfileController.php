@@ -9,16 +9,55 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 class ProfileController extends Controller
 {
     // Информация о профиле пользователя
-    public function profile(): \Illuminate\Http\JsonResponse
+    public function profile(Request $request): \Illuminate\Http\JsonResponse
     {
+        $userId = $request->query('user_id');
+
+        if ($userId && $userId != Auth::id()) {
+            $user = User::withCount('orders')->find($userId);
+
+            if (!$user) {
+                return response()->json(['error' => 'Пользователь не найден'], 404);
+            }
+
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'firstname' => $user->firstname,
+                    'lastname' => $user->lastname,
+                    'email' => $user->email,
+                    'phone' => $user->phone,  // Добавляем phone
+                    'city' => $user->city,
+                    'photo' => $user->photo,  // Добавляем photo
+                    'orders_count' => $user->orders_count,
+                    'created_at' => $user->created_at,
+                ],
+                'is_current_user' => false,
+            ]);
+        }
+
+        $user = Auth::user();
+
         return response()->json([
-            'user' => Auth::user(),
-            'orders_url' => url('/api/profile/orders')
+            'user' => [
+                'id' => $user->id,
+                'firstname' => $user->firstname,
+                'lastname' => $user->lastname,
+                'email' => $user->email,
+                'phone' => $user->phone,  // Добавляем phone
+                'city' => $user->city,
+                'photo' => $user->photo,  // Добавляем photo
+                'created_at' => $user->created_at,
+            ],
+            'orders_url' => url('/api/profile/orders'),
+            'is_current_user' => true,
         ]);
     }
+
 
     // Получение всех заказов пользователя
     public function index(): \Illuminate\Http\JsonResponse
@@ -93,6 +132,25 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function viewProfile($userId): \Illuminate\Http\JsonResponse
+    {
+        // Получаем пользователя по ID
+        $user = User::findOrFail($userId);
+
+        // Отфильтровываем только необходимые поля
+        $profileData = $user->only(['firstname', 'lastname', 'email', 'phone', 'city', 'photo']);
+
+        // Если фото пользователя есть, генерируем URL
+        if ($user->photo) {
+            $profileData['photo_url'] = asset('storage/' . $user->photo); // генерируем публичный URL
+        }
+
+        // Возвращаем данные профиля пользователя
+        return response()->json([
+            'user' => $profileData
+        ]);
+    }
+
 
     // Обновление заказа
     public function update(Request $request, $id): \Illuminate\Http\JsonResponse
@@ -149,22 +207,55 @@ class ProfileController extends Controller
         return Storage::disk('public')->download($order->file);
     }
     // Обновление профиля пользователя
+    // Обновление профиля пользователя
     public function updateProfile(Request $request): \Illuminate\Http\JsonResponse
     {
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'firstname' => 'nullable|string|max:255',
-            'lastname' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'city' => 'nullable|string|max:100',
+        // Валидация данных
+        $validatedData = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'phone' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+            'city' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $user->update($validated);
+        // Получаем текущего авторизованного пользователя
+        $user = Auth::user();
 
-        return response()->json(['message' => 'Профиль обновлен', 'user' => $user]);
+        // Если есть фото, сохраняем его
+        if ($request->hasFile('photo')) {
+            // Сохраняем фото в папку storage/app/public/photos
+            $path = $request->file('photo')->store('photos', 'public'); // Указываем диск public
+
+            // Заменяем старое фото на новое (если есть)
+            $user->photo = str_replace('public/', 'storage/', $path);
+        }
+
+        // Обновляем информацию пользователя
+        $user->update([
+            'firstname' => $validatedData['firstname'],
+            'lastname' => $validatedData['lastname'],
+            'phone' => $validatedData['phone'],
+            'email' => $validatedData['email'],
+            'city' => $validatedData['city'],
+        ]);
+
+        // Возвращаем обновленные данные пользователя
+        return response()->json([
+            'message' => 'Профиль обновлен',
+            'user' => [
+                'id' => $user->id,
+                'firstname' => $user->firstname,
+                'lastname' => $user->lastname,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'city' => $user->city,
+                'photo' => $user->photo ? asset($user->photo) : null, // Отдаем фото, если оно есть
+            ],
+        ]);
     }
+
 
     // Удаление заказа
     public function destroy($id): \Illuminate\Http\JsonResponse

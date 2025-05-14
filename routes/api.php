@@ -33,29 +33,29 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/user/order/chat/{orderId}/message', [ChatController::class, 'sendMessage'])->name('user.order.chat.sendMessage');
 });
 
+Route::get('user/profile/{userId}/profile', [ProfileController::class, 'viewProfile']);
+    Route::middleware(['auth:api'])->group(function () {
+        Route::prefix('user/profile')->group(function () {
+            Route::get('/', [ProfileController::class, 'profile']);
+            Route::put('/', [ProfileController::class, 'updateProfile']); // Информация о профиле
+            Route::get('/orders', [ProfileController::class, 'index']); // Заказы пользователя
+            Route::post('/orders', [ProfileController::class, 'store']); // Создание заказа
+            Route::get('/orders/{id}', [ProfileController::class, 'show']);
+            Route::get('/orders/{id}', [OrderController::class, 'showPublic']); // Просмотр одного заказа
+            Route::put('/orders/{id}', [ProfileController::class, 'update']); // Обновление заказа
+            Route::delete('/orders/{id}', [ProfileController::class, 'destroy']); // Удаление заказа
+            Route::get('/user/profile/download-file/{file}', [ProfileController::class, 'downloadFile']);
+            Route::post('/orders/{id}/add-to-cart', [OrderController::class, 'addToCart']);
+            Route::get('/cart', [OrderController::class, 'getCartOrders']);
+            Route::put('/orders/{id}/close', [OrderController::class, 'closeOrder']); // Закрыть заказ
 
-Route::middleware(['auth:api'])->group(function () {
-    Route::prefix('user/profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'profile']);
-        Route::put('/', [ProfileController::class, 'updateProfile']); // Информация о профиле
-        Route::get('/orders', [ProfileController::class, 'index']); // Заказы пользователя
-        Route::post('/orders', [ProfileController::class, 'store']); // Создание заказа
-        Route::get('/orders/{id}', [ProfileController::class, 'show']);
-        Route::get('/orders/{id}', [OrderController::class, 'showPublic']); // Просмотр одного заказа
-        Route::put('/orders/{id}', [ProfileController::class, 'update']); // Обновление заказа
-        Route::delete('/orders/{id}', [ProfileController::class, 'destroy']); // Удаление заказа
-        Route::get('/user/profile/download-file/{file}', [ProfileController::class, 'downloadFile']);
-        Route::post('/orders/{id}/add-to-cart', [OrderController::class, 'addToCart']);
-        Route::get('/cart', [OrderController::class, 'getCartOrders']);
-        Route::put('/orders/{id}/close', [OrderController::class, 'closeOrder']); // Закрыть заказ
-
-        // Запросы на заказы
-        Route::post('/orders/{id}/send-request', [OrderController::class, 'sendRequest']); // Отправить запрос на заказ
-        Route::post('/orders/{orderId}/approve-request/{requestId}', [OrderController::class, 'approveRequest']); // Принять запрос на
-        // Новый маршрут для получения количества откликов на заказ
-        Route::get('/orders/{id}/view-count', [OrderController::class, 'getOrderViewCount']);
+            // Запросы на заказы
+            Route::post('/orders/{id}/send-request', [OrderController::class, 'sendRequest']); // Отправить запрос на заказ
+            Route::post('/orders/{orderId}/approve-request/{requestId}', [OrderController::class, 'approveRequest']); // Принять запрос на
+            // Новый маршрут для получения количества откликов на заказ
+            Route::get('/orders/{id}/view-count', [OrderController::class, 'getOrderViewCount']);
+        });
     });
-});
 Route::middleware('auth:api')->get('/notifications', [NotificationController::class, 'getNotifications']);
 Route::middleware('auth:api')->get('/user/order/my-requests', [OrderController::class, 'myRequests']);
 
