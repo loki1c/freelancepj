@@ -13,6 +13,12 @@ class PublicOrderController extends Controller
     {
         $order = Order::with('user')->findOrFail($id);
 
+        if ($order->status === "Закрыт") {
+          return response()->json(['message' => 'Закрыт заказ'], 404);
+        }
+        if ($order->status === "В разработке") {
+            return response()->json(['message' => 'Заказ в разработке'], 404);
+        }
         // Проверка: является ли пользователь владельцем заказа
         $isOwner = $order->user_id === $request->user()->id;
 

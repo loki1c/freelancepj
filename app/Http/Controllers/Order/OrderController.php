@@ -191,7 +191,7 @@ class OrderController extends Controller
         ]);
     }
 
-    public function approveRequest($orderId, $requestId)
+    public function approveRequest($orderId, $requestId): JsonResponse
     {
         $order = Order::findOrFail($orderId);
 
@@ -202,7 +202,7 @@ class OrderController extends Controller
 
         // Проверка, одобрен ли уже какой-то запрос
         $alreadyApproved = OrderRequest::where('order_id', $orderId)
-            ->where('status', 'Подтвержден')
+            ->where('status', 'В разработке')
             ->exists();
 
         if ($alreadyApproved) {
@@ -214,18 +214,23 @@ class OrderController extends Controller
             ->where('id', $requestId)
             ->firstOrFail();
 
-        $request->status = 'Подтвержден';
+        $request->status = 'В разработке';
         $request->save();
+
+        // 🔽 Меняем статус самого заказа
+        $order->status = 'В разработке';
+        $order->save();
 
         // Отклоняем все остальные запросы
         OrderRequest::where('order_id', $orderId)
             ->where('id', '!=', $requestId)
             ->update(['status' => 'Отклонен']);
 
-        return response()->json(['message' => 'Запрос одобрен, остальные отклонены']);
+        return response()->json(['message' => 'Запрос одобрен, заказ переведен в разработку, остальные отклонены']);
     }
 
-    public function myRequests()
+
+    public function myRequests(): JsonResponse
     {
         $user = Auth::user();
 

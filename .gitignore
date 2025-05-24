@@ -2,8 +2,13 @@
 /node_modules
 /public/build
 /public/hot
+/public/storage
+/public/images/*
 /storage/*.key
 /storage/pail
+/storage/files/*
+/vendor
+.env
 .env.backup
 .env.production
 .phpactor.json
@@ -18,3 +23,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+# Ignore Laravel Passport migration files
+database/migrations/*_create_oauth_*.php
+
